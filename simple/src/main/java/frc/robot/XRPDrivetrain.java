@@ -47,7 +47,7 @@ public class XRPDrivetrain {
   }
 
   public void arcadeDrive(double xaxisSpeed, double zaxisRotate) {
-    m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate, false);
+    m_diffDrive.arcadeDrive(xaxisSpeed, -zaxisRotate, false);
   }
 
   public void tankDrive(double leftSpeed, double rightSpeed) {

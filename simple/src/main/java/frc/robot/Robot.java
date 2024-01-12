@@ -41,11 +41,11 @@ public class Robot extends TimedRobot {
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
-  private final AnalogInput m_reflectanceSensorL = new AnalogInput(0);
+  private final AnalogInput m_leftReflectanceSensor = new AnalogInput(0);
 
-  private final AnalogInput m_reflectanceSensorR = new AnalogInput(1);
+  private final AnalogInput m_rightReflectanceSensor = new AnalogInput(1);
 
-  private final AnalogInput m_ultrasonic = new AnalogInput(2);
+  private final AnalogInput m_ultrasonicSensor = new AnalogInput(2);
 
   private final DigitalInput m_onboardUserButton = new DigitalInput(0);
 
@@ -72,8 +72,8 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    double reflectanceL = m_reflectanceSensorL.getVoltage();
-    double reflectanceR = m_reflectanceSensorR.getVoltage();
+    double reflectanceL = m_leftReflectanceSensor.getVoltage();
+    double reflectanceR = m_rightReflectanceSensor.getVoltage();
 
     // Initialize EMAs
     leftReflectanceEMA.set(reflectanceL);
@@ -98,8 +98,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    double reflectanceL = m_reflectanceSensorL.getVoltage();
-    double reflectanceR = m_reflectanceSensorR.getVoltage();
+    double reflectanceL = m_leftReflectanceSensor.getVoltage();
+    double reflectanceR = m_rightReflectanceSensor.getVoltage();
 
     // Update EMAs
     leftReflectanceEMA.update(reflectanceL);
@@ -127,7 +127,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Reflectance (Δ) Mean", diffReflectanceSlidingWindow.mean());
     SmartDashboard.putNumber("Reflectance (Δ) Median", diffReflectanceSlidingWindow.median());
 
-    SmartDashboard.putNumber("Ultrasonic Range", m_ultrasonic.getVoltage());
+    SmartDashboard.putNumber("Ultrasonic Range", m_ultrasonicSensor.getVoltage());
     SmartDashboard.putBoolean("Onboard User Button", m_onboardUserButton.get());
   }
 
@@ -160,15 +160,18 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+    // When driving straight, the two reflectance sensors should report
+    // approximately the same value. If they differ, we know we're veering
+    // off course, so that's our "error" -- the difference between our
+    // current state and desired state.
+    double error = 0 - diffReflectanceSlidingWindow.median();
+    // Compute output turn strength using a P controller
+    double p = 0.15;
+    double output = p * error;
+    // Send command to motors
+    m_drivetrain.arcadeDrive(0.3, output);
+
+    SmartDashboard.putNumber("output", output);
   }
 
   /** This function is called once when teleop is enabled. */
@@ -179,29 +182,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // Uncomment this if you want to use the Xbox controller:
-    // m_drivetrain.arcadeDrive(m_controller.getLeftY(), m_controller.getLeftX());
-
-    // You can (should) move these constants to the top of the file:
-    double deadband = 0.2;
-    double p = 0.15;
-
-    // When driving straight, the two reflectance sensors should report
-    // approximately the same value. If they differ, we know we're veering
-    // off course, so that's our "error" -- the difference between our
-    // current state and desired state.
-    double error = -1 * diffReflectanceSlidingWindow.median();
-    // Apply deadband
-    if (Math.abs(error) < deadband) {
-      error = 0;
-    }
-    // Compute output turn strength using a P controller
-    double output = p * error;
-
-    SmartDashboard.putNumber("output", output);
-
-    // Send command to motors
-    m_drivetrain.arcadeDrive(0.3, -output);
+    m_drivetrain.arcadeDrive(m_controller.getLeftY(), m_controller.getLeftX());
 
     if (m_controller.getAButton()) {
       m_servoArm.setAngle(180);
@@ -230,5 +211,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
+    autonomousPeriodic();
+    m_servoArm.setAngle(90 - diffReflectanceSlidingWindow.median() * 20);
   }
 }
