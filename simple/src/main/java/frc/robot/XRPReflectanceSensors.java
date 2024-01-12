@@ -2,8 +2,10 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.signalprocessing.EMA;
+import frc.robot.signalprocessing.SlidingWindow;
 
-public class LineSensor {
+public class XRPReflectanceSensors {
     public enum SignalProcessingType {
         NONE,
         MEAN,
@@ -25,7 +27,7 @@ public class LineSensor {
     private SlidingWindow m_slidingWindowRight;
     private SlidingWindow m_slidingWindowDiff;
 
-    public LineSensor(double emaGain, int slidingWindowLength) {
+    public XRPReflectanceSensors(double emaGain, int slidingWindowLength) {
         m_emaLeft = new EMA(emaGain);
         m_emaRight = new EMA(emaGain);
         m_emaDiff = new EMA(emaGain);
@@ -79,7 +81,7 @@ public class LineSensor {
             SmartDashboard.putNumber("Reflectance (Δ) EMA", m_emaDiff.get());
             SmartDashboard.putNumber("Reflectance (Δ) Mean", m_slidingWindowDiff.mean());
             SmartDashboard.putNumber("Reflectance (Δ) Median", m_slidingWindowDiff.median());
-        }        
+        }
     }
 
     public double getLeft(SignalProcessingType signalProcessingType) {

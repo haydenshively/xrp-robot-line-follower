@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.signalprocessing;
 
 public class EMA {
     private final double gain;

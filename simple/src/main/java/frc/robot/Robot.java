@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.xrp.XRPServo;
-import frc.robot.LineSensor.SignalProcessingType;
+import frc.robot.XRPReflectanceSensors.SignalProcessingType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,7 +36,7 @@ public class Robot extends TimedRobot {
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
-  private final LineSensor m_lineSensor = new LineSensor(0.9, 15);
+  private final XRPReflectanceSensors m_lineSensor = new XRPReflectanceSensors(0.9, 15);
 
   private final AnalogInput m_ultrasonicSensor = new AnalogInput(2);
 
