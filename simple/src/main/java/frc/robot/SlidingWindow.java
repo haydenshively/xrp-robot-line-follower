@@ -13,6 +13,10 @@ public class SlidingWindow {
         Arrays.fill(data, value);
     }
 
+    public double latest() {
+        return data[data.length - 1];
+    }
+
     /**
      * @implNote Could use some kind of insertion sort for efficiency
      * @return The median of the dataset

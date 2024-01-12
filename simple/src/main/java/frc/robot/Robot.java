@@ -9,9 +9,9 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.xrp.XRPServo;
+import frc.robot.LineSensor.SignalProcessingType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,11 +23,6 @@ import edu.wpi.first.wpilibj.xrp.XRPServo;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
-
   // NOTE: need latest
   // [firmware](https://github.com/wpilibsuite/xrp-wpilib-firmware/releases/tag/v1.0.1)
   // and latest
@@ -41,25 +36,13 @@ public class Robot extends TimedRobot {
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
-  private final AnalogInput m_leftReflectanceSensor = new AnalogInput(0);
-
-  private final AnalogInput m_rightReflectanceSensor = new AnalogInput(1);
+  private final LineSensor m_lineSensor = new LineSensor(0.9, 15);
 
   private final AnalogInput m_ultrasonicSensor = new AnalogInput(2);
 
   private final DigitalInput m_onboardUserButton = new DigitalInput(0);
 
   private final DigitalOutput m_onboardGreenLED = new DigitalOutput(1);
-
-  // Exponential Moving Averages for the reflectance values
-  private EMA leftReflectanceEMA = new EMA(0.9);
-  private EMA rightReflectanceEMA = new EMA(0.9);
-  private EMA diffReflectanceEMA = new EMA(0.9);
-
-  // Sliding window data collection for the reflectance values
-  private SlidingWindow leftReflectanceSlidingWindow = new SlidingWindow(15);
-  private SlidingWindow rightReflectanceSlidingWindow = new SlidingWindow(15);
-  private SlidingWindow diffReflectanceSlidingWindow = new SlidingWindow(15);
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -68,22 +51,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
-
-    double reflectanceL = m_leftReflectanceSensor.getVoltage();
-    double reflectanceR = m_rightReflectanceSensor.getVoltage();
-
-    // Initialize EMAs
-    leftReflectanceEMA.set(reflectanceL);
-    rightReflectanceEMA.set(reflectanceR);
-    diffReflectanceEMA.set(reflectanceL - reflectanceR);
-
-    // Initialize sliding windows
-    leftReflectanceSlidingWindow.fill(reflectanceL);
-    rightReflectanceSlidingWindow.fill(reflectanceR);
-    diffReflectanceSlidingWindow.fill(reflectanceL - reflectanceR);
+    m_lineSensor.init();
   }
 
   /**
@@ -98,37 +66,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    double reflectanceL = m_leftReflectanceSensor.getVoltage();
-    double reflectanceR = m_rightReflectanceSensor.getVoltage();
-
-    // Update EMAs
-    leftReflectanceEMA.update(reflectanceL);
-    rightReflectanceEMA.update(reflectanceR);
-    diffReflectanceEMA.update(reflectanceL - reflectanceR);
-
-    // Update sliding windows
-    leftReflectanceSlidingWindow.update(reflectanceL);
-    rightReflectanceSlidingWindow.update(reflectanceR);
-    diffReflectanceSlidingWindow.update(reflectanceL - reflectanceR);
-
-    // Put data on the SmartDashboard
-    SmartDashboard.putNumber("Reflectance (L) Raw", reflectanceL);
-    SmartDashboard.putNumber("Reflectance (L) EMA", leftReflectanceEMA.get());
-    SmartDashboard.putNumber("Reflectance (L) Mean", leftReflectanceSlidingWindow.mean());
-    SmartDashboard.putNumber("Reflectance (L) Median", leftReflectanceSlidingWindow.median());
-
-    SmartDashboard.putNumber("Reflectance (R) Raw", reflectanceL);
-    SmartDashboard.putNumber("Reflectance (R) EMA", rightReflectanceEMA.get());
-    SmartDashboard.putNumber("Reflectance (R) Mean", rightReflectanceSlidingWindow.mean());
-    SmartDashboard.putNumber("Reflectance (R) Median", rightReflectanceSlidingWindow.median());
-
-    SmartDashboard.putNumber("Reflectance (Δ) Raw", reflectanceR - reflectanceL);
-    SmartDashboard.putNumber("Reflectance (Δ) EMA", diffReflectanceEMA.get());
-    SmartDashboard.putNumber("Reflectance (Δ) Mean", diffReflectanceSlidingWindow.mean());
-    SmartDashboard.putNumber("Reflectance (Δ) Median", diffReflectanceSlidingWindow.median());
-
     SmartDashboard.putNumber("Ultrasonic Range", m_ultrasonicSensor.getVoltage());
     SmartDashboard.putBoolean("Onboard User Button", m_onboardUserButton.get());
+
+    m_lineSensor.update(true);
   }
 
   /**
@@ -150,10 +91,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
-
     m_drivetrain.resetEncoders();
   }
 
@@ -164,7 +101,7 @@ public class Robot extends TimedRobot {
     // approximately the same value. If they differ, we know we're veering
     // off course, so that's our "error" -- the difference between our
     // current state and desired state.
-    double error = 0 - diffReflectanceSlidingWindow.median();
+    double error = 0 - m_lineSensor.getDifference(SignalProcessingType.MEDIAN);
     // Compute output turn strength using a P controller
     double p = 0.15;
     double output = p * error;
@@ -211,7 +148,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
-    autonomousPeriodic();
-    m_servoArm.setAngle(90 - diffReflectanceSlidingWindow.median() * 20);
+    m_servoArm.setAngle(90 - m_lineSensor.getDifference(SignalProcessingType.NONE) * 20);
   }
 }
