@@ -1,27 +1,27 @@
 package frc.robot.signalprocessing;
 
 public class EMA {
-    private final double gain;
+    private final double m_gain;
 
-    private double value;
+    private double m_value;
 
     public EMA(double gain) {
         if (gain < 0 || gain > 1) {
             throw new Error("ExponentialMovingAverage gain must be between 0 and 1");
         }
-        this.gain = gain;
+        m_gain = gain;
     }
 
     public void set(double value) {
-        this.value = value;
+        m_value = value;
     }
 
     public double get() {
-        return this.value;
+        return m_value;
     }
 
     public double update(double value) {
-        this.value = this.gain * this.value + (1.0 - this.gain) * value;
-        return this.value;
+        m_value = m_gain * m_value + (1.0 - m_gain) * value;
+        return m_value;
     }
 }
