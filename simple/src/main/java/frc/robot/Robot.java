@@ -69,6 +69,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    SmartDashboard.putNumber("Gyro Heading", 360 - m_gyro.getAngleZ());
     SmartDashboard.putNumber("Ultrasonic Range", m_ultrasonicSensor.getVoltage());
     SmartDashboard.putBoolean("Onboard User Button", m_onboardUserButton.get());
 
@@ -100,18 +101,27 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    // When driving straight, the two reflectance sensors should report
-    // approximately the same value. If they differ, we know we're veering
-    // off course, so that's our "error" -- the difference between our
-    // current state and desired state.
-    double error = 0 - m_lineSensor.getDifference(SignalProcessingType.MEDIAN);
-    // Compute output turn strength using a P controller
-    double p = 0.15;
-    double output = p * error;
-    // Send command to motors
-    m_drivetrain.arcadeDrive(0.3, output);
+    double diff = m_lineSensor.getDifference(SignalProcessingType.NONE);
 
-    SmartDashboard.putNumber("output", output);
+    // MARK: Example - Bang-bang controller
+    if (diff > 0.25) {
+      m_drivetrain.arcadeDrive(0, -0.32);
+    } else if (diff < -0.25) {
+      m_drivetrain.arcadeDrive(0, +0.32);
+    } else {
+      m_drivetrain.arcadeDrive(0.35, 0);
+    }
+
+    // MARK: Example - P controller
+    // double error = 0 - diff;
+    // // Compute output turn strength using a P controller.
+    // // Usually `turnSpeed` would just be `p * error`, but the
+    // // motors won't actually move until ~25% power, so we
+    // // add that on as a baseline
+    // double p = 0.12;
+    // double turnSpeed = Math.signum(error) * 0.25 + p * error;
+    // // Send command to motors
+    // m_drivetrain.arcadeDrive(0.4, turnSpeed);
   }
 
   /** This function is called once when teleop is enabled. */
