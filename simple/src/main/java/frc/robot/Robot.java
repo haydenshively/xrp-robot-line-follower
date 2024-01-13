@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.xrp.XRPGyro;
 import edu.wpi.first.wpilibj.xrp.XRPServo;
 import frc.robot.XRPReflectanceSensors.SignalProcessingType;
 
@@ -35,7 +34,7 @@ public class Robot extends TimedRobot {
 
   private final XRPDrivetrain m_drivetrain = new XRPDrivetrain();
 
-  private final XRPGyro m_gyro = new XRPGyro();
+  private final Odometer m_odometer = new Odometer(80);
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
@@ -69,17 +68,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    SmartDashboard.putNumber("Gyro Heading", 360 - m_gyro.getAngleZ());
     SmartDashboard.putNumber("Ultrasonic Range", m_ultrasonicSensor.getVoltage());
     SmartDashboard.putBoolean("Onboard User Button", m_onboardUserButton.get());
 
+    m_odometer.update(true);
     m_lineSensor.update(true);
   }
 
   /** This function is called once when autonomous is enabled. */
   @Override
   public void autonomousInit() {
-    m_drivetrain.resetEncoders();
+    m_odometer.tare();
   }
 
   /** This function is called periodically during autonomous. */
@@ -111,6 +110,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    m_odometer.tare();
   }
 
   /** This function is called periodically during operator control. */
