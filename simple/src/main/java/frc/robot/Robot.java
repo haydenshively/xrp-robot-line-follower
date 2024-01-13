@@ -38,7 +38,7 @@ public class Robot extends TimedRobot {
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
-  private final XRPReflectanceSensors m_lineSensor = new XRPReflectanceSensors(0.9, 15);
+  private final LineSensor m_lineSensor = new LineSensor(1.0, 0.15, SignalProcessingType.MEDIAN, 0.9, 10);
 
   private final AnalogInput m_ultrasonicSensor = new AnalogInput(2);
 
