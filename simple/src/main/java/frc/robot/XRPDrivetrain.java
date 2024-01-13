@@ -7,7 +7,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.xrp.XRPGyro;
 import edu.wpi.first.wpilibj.xrp.XRPMotor;
 
 public class XRPDrivetrain {
@@ -28,9 +27,6 @@ public class XRPDrivetrain {
 
   // Set up the differential drive controller
   private final DifferentialDrive m_diffDrive = new DifferentialDrive(m_leftMotor, m_rightMotor);
-
-  // Set up the XRPGyro
-  private final XRPGyro m_gyro = new XRPGyro();
 
   // Set up the BuiltInAccelerometer
   private final BuiltInAccelerometer m_accelerometer = new BuiltInAccelerometer();
@@ -96,37 +92,5 @@ public class XRPDrivetrain {
    */
   public double getAccelZ() {
     return m_accelerometer.getZ();
-  }
-
-  /**
-   * Current angle of the XRP around the X-axis.
-   *
-   * @return The current angle of the XRP in degrees
-   */
-  public double getGyroAngleX() {
-    return m_gyro.getAngleX();
-  }
-
-  /**
-   * Current angle of the XRP around the Y-axis.
-   *
-   * @return The current angle of the XRP in degrees
-   */
-  public double getGyroAngleY() {
-    return m_gyro.getAngleY();
-  }
-
-  /**
-   * Current angle of the XRP around the Z-axis.
-   *
-   * @return The current angle of the XRP in degrees
-   */
-  public double getGyroAngleZ() {
-    return m_gyro.getAngleZ();
-  }
-
-  /** Reset the gyro. */
-  public void resetGyro() {
-    m_gyro.reset();
   }
 }

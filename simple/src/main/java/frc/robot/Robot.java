@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.xrp.XRPGyro;
 import edu.wpi.first.wpilibj.xrp.XRPServo;
 import frc.robot.XRPReflectanceSensors.SignalProcessingType;
 
@@ -33,6 +34,8 @@ public class Robot extends TimedRobot {
   private final XboxController m_controller = new XboxController(0);
 
   private final XRPDrivetrain m_drivetrain = new XRPDrivetrain();
+
+  private final XRPGyro m_gyro = new XRPGyro();
 
   private final XRPServo m_servoArm = new XRPServo(4);
 
