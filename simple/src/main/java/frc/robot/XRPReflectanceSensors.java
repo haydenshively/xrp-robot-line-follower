@@ -77,7 +77,7 @@ public class XRPReflectanceSensors {
             SmartDashboard.putNumber("Reflectance (R) Mean", m_slidingWindowRight.mean());
             SmartDashboard.putNumber("Reflectance (R) Median", m_slidingWindowRight.median());
 
-            SmartDashboard.putNumber("Reflectance (Δ) Raw", reflectanceRight - reflectanceLeft);
+            SmartDashboard.putNumber("Reflectance (Δ) Raw", reflectanceLeft - reflectanceRight);
             SmartDashboard.putNumber("Reflectance (Δ) EMA", m_emaDiff.get());
             SmartDashboard.putNumber("Reflectance (Δ) Mean", m_slidingWindowDiff.mean());
             SmartDashboard.putNumber("Reflectance (Δ) Median", m_slidingWindowDiff.median());
